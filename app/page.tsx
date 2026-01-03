@@ -1,12 +1,12 @@
 "use client";
 
-import CheckVPN from "@/components/check-vpn";
+import NetworkGuard from "@/components/network-guard";
 import { useEffect } from "react";
 
 export default function Home() {
   return (
     <>
-      <CheckVPN />
+      <NetworkGuard />
       <div>Home page</div>
     </>
   );

@@ -1,28 +1,80 @@
-// app/api/check-vpn/route.ts
+import { headers, cookies } from "next/headers";
+
+export const revalidate = 0; // we control caching manually
 
 export async function GET() {
-  try {
-    const ipapiResponse = await fetch("https://ipinfo.io/json"); // Simple public IP service
+  const h = headers();
+  const cookieStore = cookies();
 
-    console.log("1", ipapiResponse);
+  // 1️⃣ Get real IP
+  const ip =
+    (await h).get("x-forwarded-for")?.split(",")[0] ||
+    (await h).get("x-real-ip");
 
-    if (!ipapiResponse.ok) {
-      console.error("Failed to fetch IP information");
-      return new Response(JSON.stringify({ isVpn: false }), { status: 200 });
-    }
-
-    const ipData = await ipapiResponse.json();
-
-    console.log("2", ipData);
-
-    // Check if VPN or Proxy is detected
-    const isVpn = ipData.security?.vpn || ipData.security?.proxy;
-
-    return new Response(JSON.stringify({ isVpn: Boolean(isVpn) }), {
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Error fetching IP details:", error);
-    return new Response(JSON.stringify({ isVpn: false }), { status: 200 });
+  if (!ip) {
+    return Response.json({ isVpn: false });
   }
+
+  // 2️⃣ Read last saved IP & data from cookies
+  const lastIP = (await cookieStore).get("last_ip")?.value;
+  const cached = (await cookieStore).get("ipinfo_cache")?.value;
+
+  // 3️⃣ If IP unchanged → return cached result
+  if (lastIP === ip && cached) {
+    return Response.json(JSON.parse(cached));
+  }
+
+  // 4️⃣ IP changed → call ipinfo
+  const res = await fetch(`https://ipinfo.io/${ip}/json`, {
+    headers: {
+      Authorization: `Bearer ${process.env.IPINFO_TOKEN}`,
+    },
+  });
+
+  if (!res.ok) {
+    return Response.json({ isVpn: false });
+  }
+
+  const data = await res.json();
+
+  // 5️⃣ Iran-specific VPN heuristic
+  const hostingASNs = [
+    "Amazon",
+    "Google",
+    "OVH",
+    "Hetzner",
+    "DigitalOcean",
+    "Microsoft",
+    "M247",
+    "Leaseweb",
+  ];
+
+  const isHostingASN = hostingASNs.some((p) =>
+    data.org?.toLowerCase().includes(p.toLowerCase())
+  );
+
+  const isVpn = data.country !== "IR" || isHostingASN || ip.includes(":");
+
+  const responseData = {
+    ip,
+    country: data.country,
+    org: data.org,
+    isVpn,
+  };
+
+  // 6️⃣ Save IP + result in cookies
+  (
+    await // 6️⃣ Save IP + result in cookies
+    cookieStore
+  ).set("last_ip", ip, {
+    httpOnly: true,
+    maxAge: 60 * 60 * 24, // 1 day
+  });
+
+  (await cookieStore).set("ipinfo_cache", JSON.stringify(responseData), {
+    httpOnly: true,
+    maxAge: 60 * 60 * 24,
+  });
+
+  return Response.json(responseData);
 }
