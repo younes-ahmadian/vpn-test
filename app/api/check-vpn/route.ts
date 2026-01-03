@@ -25,11 +25,9 @@ export async function GET() {
   }
 
   // 4️⃣ IP changed → call ipinfo
-  const res = await fetch(`https://ipinfo.io/${ip}/json`, {
-    headers: {
-      Authorization: `Bearer ${process.env.IPINFO_TOKEN}`,
-    },
-  });
+  const res = await fetch(
+    `https://ipinfo.io/lite/${ip}?token=${process.env.IPINFO_TOKEN}`
+  );
 
   if (!res.ok) {
     return Response.json({ isVpn: false });
