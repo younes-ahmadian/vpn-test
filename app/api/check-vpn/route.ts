@@ -15,17 +15,23 @@ export async function GET() {
     return Response.json({ isVpn: false });
   }
 
+  console.log("aaaaaaaaaaa", ip);
   // 2️⃣ Read last saved IP & data from cookies
   const lastIP = (await cookieStore).get("last_ip")?.value;
   const cached = (await cookieStore).get("ipinfo_cache")?.value;
 
+  console.log("bbbbbbbbb", lastIP, ip, cached);
   // 3️⃣ If IP unchanged → return cached result
-  if (lastIP === ip && cached) {
-    return Response.json(JSON.parse(cached));
-  }
+  // if (lastIP === ip && cached) {
+  //   return Response.json(JSON.parse(cached));
+  // }
 
   // 4️⃣ IP changed → call ipinfo
   const res = await fetch(
+    `https://ipinfo.io/lite/${ip}?token=${process.env.IPINFO_TOKEN}`
+  );
+  console.log(
+    "444444444",
     `https://ipinfo.io/lite/${ip}?token=${process.env.IPINFO_TOKEN}`
   );
 
