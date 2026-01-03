@@ -28,7 +28,7 @@ export async function GET() {
 
   // 4️⃣ IP changed → call ipinfo
   const res = await fetch(
-    `https://ipinfo.io/lite/${ip}?token=${process.env.IPINFO_TOKEN}`
+    `https://api.ipinfo.io/lite/${ip}?token=${process.env.IPINFO_TOKEN}`
   );
   console.log(
     "444444444",
