@@ -9,7 +9,7 @@ export default function NetworkGuard() {
   useEffect(() => {
     const checkNetwork = async () => {
       try {
-        const res = await fetch("/api/check-network");
+        const res = await fetch("/api/check-vpn");
         const data = await res.json();
 
         console.log("data in guard", data);
