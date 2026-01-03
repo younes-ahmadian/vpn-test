@@ -16,7 +16,7 @@ const CheckVPN = () => {
         const data = await res.json();
 
         const res2 = await fetch("/api/get-ip"); // This is the custom API route
-        const data2 = await res.json();
+        const data2 = await res2.json();
 
         console.log("ip is", data2);
         console.log("isVpn", data);
