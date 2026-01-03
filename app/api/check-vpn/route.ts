@@ -38,6 +38,7 @@ export async function GET() {
   const data = await res.json();
 
   // 5️⃣ Iran-specific VPN heuristic
+  console.log("sssssssssssssss", data);
   const hostingASNs = [
     "Amazon",
     "Google",
