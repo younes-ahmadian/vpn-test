@@ -58,7 +58,7 @@ export async function GET() {
     data.org?.toLowerCase().includes(p.toLowerCase())
   );
 
-  const isVpn = data.country !== "IR" || isHostingASN || ip.includes(":");
+  const isVpn = data.country_code !== "IR" || isHostingASN || ip.includes(":");
 
   const responseData = {
     ip,
